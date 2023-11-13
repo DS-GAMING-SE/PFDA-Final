@@ -1,41 +1,39 @@
 # Title
 
 ## Repository
-<Link to your project's public GitHub respository>
+https://github.com/DS-GAMING-SE/PFDA-Final
 
 ## Description
-1-2 sentence description of what it will do and how it relevant to media and digital arts.
+I'll be making a version of the game Snake in pygame. It's a well known and fairly simple game that will help familiarize me with more of python and pygame. 
 
 ## Features
-- Feature 1
-	- Short explaination of how it will be executed.
-- Feature 2
-	- Short explaination of how it will be executed.
-- Feature N 
-	- Short explaination of how it will be executed.
+- Snake Functionality
+	- The player will be able to control the movement of the snake. The snake's body can get longer or shorter
+- Randomly Spawning Objects
+	- Randomly spawning objects, like food, will need to be placed automatically. The food will increase the length of the snake and disappear when touched
+- Visuals 
+	- The game will be displayed on a screen through pygame. The visuals will include all necessary information for the game, such as length and location of objects, as well as any visual fluorishes I have time to add
 
 ## Challenges
-- Short sentence of any skill or topic that needs to be learnt or researched.
-- Short sentence of any skill or topic that needs to be learnt or researched.
-- Short sentence of any skill or topic that needs to be learnt or researched.
+- I have never dealt with user inputs in pygame, so I will have to learn how that works
 
 ## Outcomes
 Ideal Outcome:
-- Briefly describe what is the ideal outcome?
+- The game is playable and has some visual elements that make it look better and feel better to play
 
 Minimal Viable Outcome:
-- Briefly describe the bare essential for a good working outcome?
+- The game is playable
 
 ## Milestones
 
 - Week 1
-  1. Goal 1
-  2. Goal 2
+  1. Pygame display working
+  2. Start on snake functionality
 
 - Week 2
-  1. Goal 1
-  2. Goal 2
+  1. Finish snake functionality
+  2. Start random spawning objects
 
 - Week N (Final)
-  1. Goal 1
-  2. Goal 2
+  1. Finish random spawning objects and overall gameloop
+  2. Any extra visual elements I have time for
