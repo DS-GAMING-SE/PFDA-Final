@@ -11,8 +11,7 @@ class Inputs(Enum):
     RIGHT = 3
 
 class SnakeSegment():
-    def __init__(self, screen_res, size, pos = (0,0)):
-        self.screen_res = screen_res
+    def __init__(self, size, pos = (0,0)):
         self.size = size
         self.pos = pos
         self.surface = self.update_surface()
@@ -29,23 +28,22 @@ class SnakeSegment():
         surface.blit(self.surface, self.pos)
 
 class SnakeHead():
-    def __init__(self, screen_res, size, pos = (0,0)):
-        self.screen_res = screen_res
+    def __init__(self, size, pos = (0,0)):
         self.size = size
         self.pos = pos
-        self.segments = []
+        self.segments = [] # youngest/furthest back segments are first in list
         self.surface = self.update_surface()
+        for i in range(5):
+            self.grow((0, self.size * i))
 
     def update(self, time, direction):
-        if len(self.segments)>0:
-            for i in range(len(self.segments)-2):
+        if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
+            for i in range(len(self.segments)-1):
                 self.segments[i].update(time, self.segments[i+1])
             self.segments[len(self.segments)-1].update(time, self)
-        if time<=60:
-            self.grow()# Spawn test segments
         self.move(direction)
 
-    def move(self, direction):
+    def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         if (direction == Inputs.UP):
             self.pos = (self.pos[0], self.pos[1] - self.size)
         elif (direction == Inputs.DOWN):
@@ -55,8 +53,8 @@ class SnakeHead():
         elif (direction == Inputs.RIGHT):
             self.pos = (self.pos[0] + self.size, self.pos[1])
 
-    def grow(self):
-        self.segments.insert(0, SnakeSegment(self.screen_res, self.size, self.pos))
+    def grow(self, pos = (0,0)):
+        self.segments.insert(0, SnakeSegment(self.size, (self.pos[0] + pos[0], self.pos[1] + pos[1])))
         print("Segment added")
 
     def update_surface(self):
@@ -91,7 +89,7 @@ def main():
     deltatime = 0
     running = True
     direction = Inputs.UP
-    player = SnakeHead(resolution, tile_size, (resolution[0]/2, resolution[1]/2))
+    player = SnakeHead(tile_size, (resolution[0]/2, resolution[1]/2))
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
