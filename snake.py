@@ -17,13 +17,16 @@ class SnakeSegment():
         self.pos = pos
         self.surface = self.update_surface()
 
-    def update(self, time):
-        return
+    def update(self, time, next_segment):
+        self.pos = next_segment.pos
     
     def update_surface(self):
         surf = pygame.Surface((self.size*0.9, self.size*0.9))
         surf.fill('White')
         return surf
+    
+    def draw(self, surface):
+        surface.blit(self.surface, self.pos)
 
 class SnakeHead():
     def __init__(self, screen_res, size, pos = (0,0)):
@@ -34,8 +37,15 @@ class SnakeHead():
         self.surface = self.update_surface()
 
     def update(self, time, direction):
-        for segment in self.segments:
-            segment.update(time)
+        if len(self.segments)>0:
+            for i in range(len(self.segments)-2):
+                self.segments[i].update(time, self.segments[i+1])
+            self.segments[len(self.segments)-1].update(time, self)
+        if time<=60:
+            self.grow()# Spawn test segments
+        self.move(direction)
+
+    def move(self, direction):
         if (direction == Inputs.UP):
             self.pos = (self.pos[0], self.pos[1] - self.size)
         elif (direction == Inputs.DOWN):
@@ -46,7 +56,8 @@ class SnakeHead():
             self.pos = (self.pos[0] + self.size, self.pos[1])
 
     def grow(self):
-        self.segments.append(SnakeSegment(self.screen_res, self.size, self.pos))
+        self.segments.insert(0, SnakeSegment(self.screen_res, self.size, self.pos))
+        print("Segment added")
 
     def update_surface(self):
         surf = pygame.Surface((self.size*0.9, self.size*0.9))
@@ -55,18 +66,19 @@ class SnakeHead():
     
     def draw(self, surface):
         surface.blit(self.surface, self.pos)
+        for segment in self.segments:
+            segment.draw(surface)
 
 def gather_movement_inputs(event, current_direction):
-    if event.key == pygame.K_UP or event.key == pygame.K_w:
+    if (event.key == pygame.K_UP or event.key == pygame.K_w) and current_direction != Inputs.DOWN:
         return Inputs.UP
-    elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+    elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and current_direction != Inputs.UP:
         return Inputs.DOWN
-    elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+    elif (event.key == pygame.K_RIGHT or event.key == pygame.K_d) and current_direction != Inputs.LEFT:
         return Inputs.RIGHT
-    elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+    elif (event.key == pygame.K_LEFT or event.key == pygame.K_a) and current_direction != Inputs.RIGHT:
         return Inputs.LEFT
     else:
-        print("Movement key recognized")
         return current_direction
 
 def main():
@@ -90,7 +102,7 @@ def main():
         player.update(deltatime, direction)
         player.draw(screen)
         pygame.display.flip()
-        deltatime = clock.tick(8)
+        deltatime = clock.tick(12)
     pygame.quit()
     
 
