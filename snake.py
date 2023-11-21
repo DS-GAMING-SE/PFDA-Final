@@ -39,11 +39,11 @@ class SnakeHead():
         if (direction == Inputs.UP):
             self.pos = (self.pos[0], self.pos[1] - self.size)
         elif (direction == Inputs.DOWN):
-            self.pos -= (self.pos[0], self.pos[1] + self.size)
+            self.pos = (self.pos[0], self.pos[1] + self.size)
         elif (direction == Inputs.LEFT):
-            self.pos -= (self.pos[0] - self.size, self.pos[1])
+            self.pos = (self.pos[0] - self.size, self.pos[1])
         elif (direction == Inputs.RIGHT):
-            self.pos += (self.pos[0] + self.size, self.pos[1])
+            self.pos = (self.pos[0] + self.size, self.pos[1])
 
     def grow(self):
         self.segments.append(SnakeSegment(self.screen_res, self.size, self.pos))
@@ -57,15 +57,16 @@ class SnakeHead():
         surface.blit(self.surface, self.pos)
 
 def gather_movement_inputs(event, current_direction):
-    if event.type == pygame.K_UP:
+    if event.key == pygame.K_UP or event.key == pygame.K_w:
         return Inputs.UP
-    elif event.type == pygame.K_DOWN:
+    elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
         return Inputs.DOWN
-    elif event.type == pygame.K_RIGHT:
+    elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
         return Inputs.RIGHT
-    elif event.type == pygame.K_LEFT:
+    elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
         return Inputs.LEFT
     else:
+        print("Movement key recognized")
         return current_direction
 
 def main():
@@ -83,7 +84,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            else:
+            elif event.type == pygame.KEYDOWN:
                 direction = gather_movement_inputs(event, direction)
         screen.fill('Black')
         player.update(deltatime, direction)
