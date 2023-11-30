@@ -20,12 +20,12 @@ class SnakeSegment():
         self.pos = next_segment.pos
     
     def update_surface(self):
-        surf = pygame.Surface((self.size*0.9, self.size*0.9))
+        surf = pygame.Surface((self.size, self.size))
         surf.fill('White')
         return surf
     
     def draw(self, surface):
-        surface.blit(self.surface, self.pos)
+        surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
 
 class SnakeHead():
     def __init__(self, size, pos = (0,0)):
@@ -34,7 +34,7 @@ class SnakeHead():
         self.segments = [] # youngest/furthest back segments are first in list
         self.surface = self.update_surface()
         for i in range(5):
-            self.grow((0, self.size * i))
+            self.grow((0, i))
 
     def update(self, time, direction):
         if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
@@ -45,25 +45,25 @@ class SnakeHead():
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         if (direction == Inputs.UP):
-            self.pos = (self.pos[0], self.pos[1] - self.size)
+            self.pos = (self.pos[0], self.pos[1] - 1)
         elif (direction == Inputs.DOWN):
-            self.pos = (self.pos[0], self.pos[1] + self.size)
+            self.pos = (self.pos[0], self.pos[1] + 1)
         elif (direction == Inputs.LEFT):
-            self.pos = (self.pos[0] - self.size, self.pos[1])
+            self.pos = (self.pos[0] - 1, self.pos[1])
         elif (direction == Inputs.RIGHT):
-            self.pos = (self.pos[0] + self.size, self.pos[1])
+            self.pos = (self.pos[0] + 1, self.pos[1])
 
     def grow(self, pos = (0,0)):
         self.segments.insert(0, SnakeSegment(self.size, (self.pos[0] + pos[0], self.pos[1] + pos[1])))
         print("Segment added")
 
     def update_surface(self):
-        surf = pygame.Surface((self.size*0.9, self.size*0.9))
+        surf = pygame.Surface((self.size, self.size))
         surf.fill('White')
         return surf
     
     def draw(self, surface):
-        surface.blit(self.surface, self.pos)
+        surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
         for segment in self.segments:
             segment.draw(surface)
 
@@ -82,14 +82,14 @@ def gather_movement_inputs(event, current_direction):
 def main():
     pygame.init
     pygame.display.set_caption("Snake")
-    resolution = (800, 600)
+    resolution = (600, 600)
     tile_size = 20
     screen = pygame.display.set_mode(resolution, pygame.SCALED | pygame.RESIZABLE)
     clock = pygame.time.Clock()
     deltatime = 0
     running = True
     direction = Inputs.UP
-    player = SnakeHead(tile_size, (resolution[0]/2, resolution[1]/2))
+    player = SnakeHead(tile_size, (resolution[0]/tile_size/2, resolution[1]/tile_size/2))
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
