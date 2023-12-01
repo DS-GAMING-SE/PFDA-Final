@@ -10,6 +10,20 @@ class Inputs(Enum):
     LEFT = 2
     RIGHT = 3
 
+class Food():
+    def __init__(self, size, pos = (0,0)):
+        self.size = size
+        self.pos = pos
+        self.surface = self.update_surface()
+    
+    def update_surface(self):
+        surf = pygame.Surface((self.size, self.size))
+        surf.fill('Red')
+        return surf
+    
+    def draw(self, surface):
+        surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
+
 class SnakeSegment():
     def __init__(self, size, pos = (0,0)):
         self.size = size
@@ -34,14 +48,16 @@ class SnakeHead():
         self.segments = [] # youngest/furthest back segments are first in list
         self.surface = self.update_surface()
         for i in range(5):
-            self.grow((0, i))
+            self.grow((self.pos[0], self.pos[1]+i))
 
-    def update(self, time, direction):
+    def update(self, time, direction, food):
         if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
+            back_pos = self.segments[0].pos
             for i in range(len(self.segments)-1):
                 self.segments[i].update(time, self.segments[i+1])
             self.segments[len(self.segments)-1].update(time, self)
         self.move(direction)
+        self.check_for_food(food, back_pos)
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         if (direction == Inputs.UP):
@@ -54,7 +70,7 @@ class SnakeHead():
             self.pos = (self.pos[0] + 1, self.pos[1])
 
     def grow(self, pos = (0,0)):
-        self.segments.insert(0, SnakeSegment(self.size, (self.pos[0] + pos[0], self.pos[1] + pos[1])))
+        self.segments.insert(0, SnakeSegment(self.size, pos))
         print("Segment added")
 
     def update_surface(self):
@@ -66,6 +82,11 @@ class SnakeHead():
         surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
         for segment in self.segments:
             segment.draw(surface)
+
+    def check_for_food(self, food, pos):
+        if self.pos == food.pos:
+            self.grow(pos)
+        
 
 def gather_movement_inputs(event, current_direction):
     if (event.key == pygame.K_UP or event.key == pygame.K_w) and current_direction != Inputs.DOWN:
@@ -90,14 +111,18 @@ def main():
     running = True
     direction = Inputs.UP
     player = SnakeHead(tile_size, (resolution[0]/tile_size/2, resolution[1]/tile_size/2))
+    food = Food(tile_size, (3,3))
     while running:
+        direction_inputted = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN and not direction_inputted:
                 direction = gather_movement_inputs(event, direction)
+                direction_inputted = True
         screen.fill('Black')
-        player.update(deltatime, direction)
+        player.update(deltatime, direction, food)
+        food.draw(screen)
         player.draw(screen)
         pygame.display.flip()
         deltatime = clock.tick(12)
