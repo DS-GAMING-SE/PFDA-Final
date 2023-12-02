@@ -26,8 +26,11 @@ class Food():
 
 class SnakeSegment():
     def __init__(self, size, pos = (0,0)):
-        self.size = size
+        self.tile_size = size
+        self.size = size * 0.8
         self.pos = pos
+        self.color = pygame.Color(255, 255, 255)
+        self.alpha = 255
         self.surface = self.update_surface()
 
     def update(self, time, next_segment):
@@ -35,30 +38,40 @@ class SnakeSegment():
     
     def update_surface(self):
         surf = pygame.Surface((self.size, self.size))
-        surf.fill('White')
+        self.color.a = self.alpha
+        surf.fill(self.color)
         return surf
     
     def draw(self, surface):
-        surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
+        surface.blit(self.surface, ((self.pos[0]*self.tile_size)+(self.tile_size-self.size)/2, (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
 
 class SnakeHead():
     def __init__(self, size, pos = (0,0)):
+        self.tile_size = size
         self.size = size
         self.pos = pos
+        self.alive = True
+        self.color = pygame.Color(255, 255, 255)
+        self.alpha = 255
         self.segments = [] # youngest/furthest back segments are first in list
         self.surface = self.update_surface()
         for i in range(5):
             self.grow((self.pos[0], self.pos[1]+i))
 
     def update(self, time, direction, food):
-        if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
-            back_pos = self.segments[0].pos
-            for i in range(len(self.segments)-1):
-                self.segments[i].update(time, self.segments[i+1])
-            self.segments[len(self.segments)-1].update(time, self)
-        self.check_for_collision(direction)
-        self.pos = self.move(direction)
-        self.check_for_food(food, back_pos)
+        if self.alive:
+            if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
+                back_pos = self.segments[0].pos
+                for i in range(len(self.segments)-1):
+                    self.segments[i].update(time, self.segments[i+1])
+                self.segments[len(self.segments)-1].update(time, self)
+            self.check_for_collision(direction)
+            if not self.alive:
+                return
+            self.pos = self.move(direction)
+            self.check_for_food(food, back_pos)
+        else:
+            self.update_surface()
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         new_pos = self.pos
@@ -74,16 +87,17 @@ class SnakeHead():
 
 
     def grow(self, pos = (0,0)):
-        self.segments.insert(0, SnakeSegment(self.size, pos))
+        self.segments.insert(0, SnakeSegment(self.tile_size, pos))
         print("Segment added")
 
     def update_surface(self):
         surf = pygame.Surface((self.size, self.size))
-        surf.fill('White')
+        self.color.a = self.alpha
+        surf.fill(self.color)
         return surf
     
     def draw(self, surface):
-        surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
+        surface.blit(self.surface, ((self.pos[0]*self.tile_size)+((self.tile_size-self.size)/2), (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
         for segment in self.segments:
             segment.draw(surface)
 
@@ -93,9 +107,10 @@ class SnakeHead():
     
     def check_for_collision(self, direction):
         next_pos = self.move(direction)
-        for i in range(1,len(self.segments)-1): # Don't check the very first and last segment because realistically you can't collide with them
+        for i in range(1,len(self.segments)-2): # Don't check the first few and last segment because realistically you can't collide with them
             if next_pos == self.segments[i].pos:
-                print("collision")
+                print("Collision")
+                self.alive = False
                 return
 
 
