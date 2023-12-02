@@ -56,18 +56,22 @@ class SnakeHead():
             for i in range(len(self.segments)-1):
                 self.segments[i].update(time, self.segments[i+1])
             self.segments[len(self.segments)-1].update(time, self)
-        self.move(direction)
+        self.check_for_collision(direction)
+        self.pos = self.move(direction)
         self.check_for_food(food, back_pos)
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
+        new_pos = self.pos
         if (direction == Inputs.UP):
-            self.pos = (self.pos[0], self.pos[1] - 1)
+            new_pos = (self.pos[0], self.pos[1] - 1)
         elif (direction == Inputs.DOWN):
-            self.pos = (self.pos[0], self.pos[1] + 1)
+            new_pos = (self.pos[0], self.pos[1] + 1)
         elif (direction == Inputs.LEFT):
-            self.pos = (self.pos[0] - 1, self.pos[1])
+            new_pos = (self.pos[0] - 1, self.pos[1])
         elif (direction == Inputs.RIGHT):
-            self.pos = (self.pos[0] + 1, self.pos[1])
+            new_pos = (self.pos[0] + 1, self.pos[1])
+        return new_pos
+
 
     def grow(self, pos = (0,0)):
         self.segments.insert(0, SnakeSegment(self.size, pos))
@@ -86,6 +90,15 @@ class SnakeHead():
     def check_for_food(self, food, pos):
         if self.pos == food.pos:
             self.grow(pos)
+    
+    def check_for_collision(self, direction):
+        next_pos = self.move(direction)
+        for i in range(1,len(self.segments)-1): # Don't check the very first and last segment because realistically you can't collide with them
+            if next_pos == self.segments[i].pos:
+                print("collision")
+                return
+
+
         
 
 def gather_movement_inputs(event, current_direction):
