@@ -112,7 +112,7 @@ class SnakeHead():
         self.tile_size = size
         self.size = size
         self.pos = pos
-        self.alive = True
+        self.alive = False
         self.color = pygame.Color(255, 255, 255)
         self.alpha = 255
         self.exploded = False
@@ -225,6 +225,9 @@ def draw_world_border(surface):
     surface.blit(surface, (0,0))
     pygame.draw.rect(surface, "White", rect, 4)
 
+def reset_player(tile_size, resolution):
+    return SnakeHead(tile_size, (resolution[0]/tile_size/2, resolution[1]/tile_size/2))
+
 def main():
     pygame.init
     pygame.display.set_caption("Snake")
@@ -235,7 +238,8 @@ def main():
     deltatime = 0
     running = True
     direction = Inputs.UP
-    player = SnakeHead(tile_size, (resolution[0]/tile_size/2, resolution[1]/tile_size/2))
+    player = reset_player(tile_size, resolution)
+    moved_from_start = False
     food = Food(tile_size, (3,3))
     while running:
         direction_inputted = False
@@ -243,8 +247,17 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN and not direction_inputted:
-                direction = gather_movement_inputs(event, direction)
-                direction_inputted = True
+                if event.key == pygame.K_r:
+                    moved_from_start = False
+                    player = reset_player(tile_size, resolution)
+                    direction = Inputs.UP
+                    food = Food(tile_size, (3,3))
+                else:
+                    if not moved_from_start:
+                        moved_from_start = True
+                        player.alive = True
+                    direction = gather_movement_inputs(event, direction)
+                    direction_inputted = True
         screen.fill('Black')
         draw_world_border(screen)
         player.update(deltatime, direction, food)
