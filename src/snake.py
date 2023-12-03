@@ -95,14 +95,14 @@ class SnakeHead():
 
     def update(self, time, direction, food):
         if self.alive:
+            self.check_for_collision(direction)
+            if not self.alive:
+                return
             if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
                 back_pos = self.segments[0].pos
                 for i in range(len(self.segments)-1):
                     self.segments[i].update(time, self.segments[i+1])
                 self.segments[len(self.segments)-1].update(time, self)
-            self.check_for_collision(direction)
-            if not self.alive:
-                return
             self.pos = self.move(direction)
             self.check_for_food(food, back_pos)
         elif not self.exploded:
@@ -147,6 +147,10 @@ class SnakeHead():
     
     def check_for_collision(self, direction):
         next_pos = self.move(direction)
+        if next_pos[0] < 0 or next_pos[0] > 30 or next_pos[1] < 0 or next_pos[1] > 30: # Check borders
+            print("Collision")
+            self.alive = False
+            return
         for i in range(0,len(self.segments)-2): # Don't check the first few and last segment because realistically you can't collide with them
             if next_pos == self.segments[i].pos:
                 print("Collision")
@@ -167,6 +171,11 @@ def gather_movement_inputs(event, current_direction):
         return Inputs.LEFT
     else:
         return current_direction
+    
+def draw_world_border(surface):
+    rect = pygame.Rect(0, 0, 600, 600)
+    surface.blit(surface, (0,0))
+    pygame.draw.rect(surface, "White", rect, 4)
 
 def main():
     pygame.init
@@ -189,12 +198,15 @@ def main():
                 direction = gather_movement_inputs(event, direction)
                 direction_inputted = True
         screen.fill('Black')
+        draw_world_border(screen)
         player.update(deltatime, direction, food)
         food.draw(screen)
         player.draw(screen)
         pygame.display.flip()
         deltatime = clock.tick(12)
     pygame.quit()
+
+
     
 
 if __name__ == "__main__":
