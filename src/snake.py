@@ -107,7 +107,7 @@ class SnakeHead():
     
     def check_for_collision(self, direction):
         next_pos = self.move(direction)
-        for i in range(1,len(self.segments)-2): # Don't check the first few and last segment because realistically you can't collide with them
+        for i in range(0,len(self.segments)-2): # Don't check the first few and last segment because realistically you can't collide with them
             if next_pos == self.segments[i].pos:
                 print("Collision")
                 self.alive = False
