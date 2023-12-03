@@ -10,6 +10,39 @@ class Inputs(Enum):
     LEFT = 2
     RIGHT = 3
 
+class Explosion():
+    def __init__(self, tile_size, size, pos = (0,0)):
+        self.tile_size = tile_size
+        self.size = size
+        self.pos = pos
+        self.color = pygame.Color(255, 255, 255)
+        self.alpha = 255
+        self.explode_timer = 0
+        self.explode_time = 400
+        self.dead = False
+        self.surface = self.update_surface()
+
+    def update(self, time):
+        self.explode_timer += time
+        if self.explode_timer>self.explode_time:
+            self.dead = True
+        self.alpha = 255 * (1-(self.explode_timer / self.explode_time))
+        self.size = self.size * (1 + (self.explode_timer / self.explode_time))
+    
+    def update_surface(self):
+        surf = pygame.Surface((self.size, self.size))
+        surf.fill(self.color)
+        return surf
+    
+    def draw(self, surface):
+        if self.dead:
+            return
+        self.surface.set_alpha(self.alpha)
+        pos = ((self.pos[0]*self.tile_size)+(self.tile_size-self.size)/2, (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2)
+        rect = pygame.Rect(pos[0], pos[1], self.size, self.size)
+        surface.blit(self.surface, pos)
+        pygame.draw.rect(self.surface, self.color, rect)
+
 class Food():
     def __init__(self, size, pos = (0,0)):
         self.size = size
@@ -53,7 +86,9 @@ class SnakeHead():
         self.alive = True
         self.color = pygame.Color(255, 255, 255)
         self.alpha = 255
+        self.exploded = False
         self.segments = [] # youngest/furthest back segments are first in list
+        self.explosion = None
         self.surface = self.update_surface()
         for i in range(5):
             self.grow((self.pos[0], self.pos[1]+i))
@@ -70,8 +105,11 @@ class SnakeHead():
                 return
             self.pos = self.move(direction)
             self.check_for_food(food, back_pos)
+        elif not self.exploded:
+            self.explosion = Explosion(self.tile_size, self.size, self.pos)
+            self.exploded = True
         else:
-            self.update_surface()
+            self.explosion.update(time)
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         new_pos = self.pos
@@ -97,6 +135,8 @@ class SnakeHead():
         return surf
     
     def draw(self, surface):
+        if self.exploded:
+            self.explosion.draw(surface)
         surface.blit(self.surface, ((self.pos[0]*self.tile_size)+((self.tile_size-self.size)/2), (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
         for segment in self.segments:
             segment.draw(surface)
