@@ -13,7 +13,7 @@ class Inputs(Enum):
 class Explosion():
     def __init__(self, tile_size, size, pos = (0,0)):
         self.tile_size = tile_size
-        self.size = size
+        self.size = size * 2
         self.pos = pos
         self.color = pygame.Color(255, 255, 255)
         self.alpha = 255
@@ -27,7 +27,6 @@ class Explosion():
         if self.explode_timer>self.explode_time:
             self.dead = True
         self.alpha = 255 * (1-(self.explode_timer / self.explode_time))
-        self.size = self.size * (1 + (self.explode_timer / self.explode_time))
     
     def update_surface(self):
         surf = pygame.Surface((self.size, self.size))
@@ -38,10 +37,8 @@ class Explosion():
         if self.dead:
             return
         self.surface.set_alpha(self.alpha)
-        pos = ((self.pos[0]*self.tile_size)+(self.tile_size-self.size)/2, (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2)
-        rect = pygame.Rect(pos[0], pos[1], self.size, self.size)
+        pos = ((self.pos[0]*self.tile_size)+((self.tile_size-self.size)/2), (self.pos[1]*self.tile_size)+((self.tile_size-self.size)/2))
         surface.blit(self.surface, pos)
-        pygame.draw.rect(self.surface, self.color, rect)
 
 class Food():
     def __init__(self, size, pos = (0,0)):
@@ -80,10 +77,17 @@ class SnakeSegment():
         self.pos = pos
         self.color = pygame.Color(255, 255, 255)
         self.alpha = 255
+        self.explosion = None
+        self.exploded = False
         self.surface = self.update_surface()
 
     def update(self, time, next_segment):
         self.pos = next_segment.pos
+
+    def explode_update(self, time):
+        if self.exploded:
+            self.explosion.update(time)
+            return
     
     def update_surface(self):
         surf = pygame.Surface((self.size, self.size))
@@ -92,7 +96,16 @@ class SnakeSegment():
         return surf
     
     def draw(self, surface):
+        if self.exploded:
+            self.explosion.draw(surface)
+            return
         surface.blit(self.surface, ((self.pos[0]*self.tile_size)+(self.tile_size-self.size)/2, (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
+
+    def explode(self):
+        if self.exploded:
+            return
+        self.explosion = Explosion(self.tile_size, self.size, self.pos)
+        self.exploded = True
 
 class SnakeHead():
     def __init__(self, size, pos = (0,0)):
@@ -103,6 +116,9 @@ class SnakeHead():
         self.color = pygame.Color(255, 255, 255)
         self.alpha = 255
         self.exploded = False
+        self.next_explode_timer = 0
+        self.next_explode_time = 150
+        self.next_explode_count = 0
         self.segments = [] # youngest/furthest back segments are first in list
         self.explosion = None
         self.surface = self.update_surface()
@@ -114,18 +130,32 @@ class SnakeHead():
             self.check_for_collision(direction)
             if not self.alive:
                 return
-            if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
-                back_pos = self.segments[0].pos
-                for i in range(len(self.segments)-1):
-                    self.segments[i].update(time, self.segments[i+1])
-                self.segments[len(self.segments)-1].update(time, self)
+            back_pos = self.segments[0].pos
+            self.update_segments(time)
             self.pos = self.move(direction)
             self.check_for_food(food, back_pos)
-        elif not self.exploded:
-            self.explosion = Explosion(self.tile_size, self.size, self.pos)
-            self.exploded = True
-        else:
-            self.explosion.update(time)
+        #elif not self.exploded:
+        #    self.explosion = Explosion(self.tile_size, self.size, self.pos)
+        #    self.exploded = True
+        #else:
+        #    self.explosion.update(time)
+        #    for segment in self.segments:
+        #        segment.explode_update(time)
+        #    self.next_explode_timer += time
+
+        #    reverse_segments = self.segments
+        #    reverse_segments.reverse()
+        #    while self.next_explode_timer > self.next_explode_time * (self.next_explode_count + 1) and self.next_explode_count + 1 <= len(self.segments)-1:
+        #        reverse_segments[self.next_explode_count].explode()
+        #        self.next_explode_count += 1
+
+    def update_segments(self, time):
+        if len(self.segments)>0: # Segments start from the back and move to the spot that the next segment is
+            for i in range(len(self.segments)-1):
+                self.segments[i].update(time, self.segments[i+1])
+            self.segments[len(self.segments)-1].update(time, self)
+                
+
 
     def move(self, direction): # help from https://www.youtube.com/watch?v=AvV6UxuzH5c
         new_pos = self.pos
@@ -151,11 +181,12 @@ class SnakeHead():
         return surf
     
     def draw(self, surface):
-        if self.exploded:
-            self.explosion.draw(surface)
-        surface.blit(self.surface, ((self.pos[0]*self.tile_size)+((self.tile_size-self.size)/2), (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
         for segment in self.segments:
             segment.draw(surface)
+        #if self.exploded:
+        #    self.explosion.draw(surface)
+        #    return
+        surface.blit(self.surface, ((self.pos[0]*self.tile_size)+((self.tile_size-self.size)/2), (self.pos[1]*self.tile_size)+(self.tile_size-self.size)/2))
 
     def check_for_food(self, food, pos):
         if self.pos == food.pos:
