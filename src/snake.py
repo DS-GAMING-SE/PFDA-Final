@@ -57,6 +57,22 @@ class Food():
     def draw(self, surface):
         surface.blit(self.surface, (self.pos[0]*self.size, self.pos[1]*self.size))
 
+    def eaten(self, segments):
+        occupied = True
+        while occupied:
+            print("Food Occupy Check")
+            new_pos = (random.randrange(0,29), random.randrange(0,29))
+            occupied = new_pos == self.pos
+            occupied = self.segment_search(new_pos,segments)
+        self.pos = new_pos
+    
+    def segment_search(self, pos, segments):
+        for segment in segments:
+                if pos == segment.pos:
+                    return True
+        return False
+
+
 class SnakeSegment():
     def __init__(self, size, pos = (0,0)):
         self.tile_size = size
@@ -144,10 +160,11 @@ class SnakeHead():
     def check_for_food(self, food, pos):
         if self.pos == food.pos:
             self.grow(pos)
+            food.eaten(self.segments)
     
     def check_for_collision(self, direction):
         next_pos = self.move(direction)
-        if next_pos[0] < 0 or next_pos[0] > 30 or next_pos[1] < 0 or next_pos[1] > 30: # Check borders
+        if next_pos[0] < 0 or next_pos[0] > 29 or next_pos[1] < 0 or next_pos[1] > 29: # Check borders
             print("Collision")
             self.alive = False
             return
@@ -205,9 +222,6 @@ def main():
         pygame.display.flip()
         deltatime = clock.tick(12)
     pygame.quit()
-
-
-    
 
 if __name__ == "__main__":
     main()
