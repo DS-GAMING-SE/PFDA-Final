@@ -1,7 +1,7 @@
 # Snake in Pygame
 
 ## Demo
-Demo Video: <URL>
+Demo Video: Refer to eLearning submission
 
 ## GitHub Repository
 GitHub Repo: <https://github.com/DS-GAMING-SE/PFDA-Final>
