@@ -57,7 +57,7 @@ class Food():
     def eaten(self, segments):
         occupied = True
         while occupied:
-            print("Food Occupy Check")
+            #print("Food Occupy Check")
             new_pos = (random.randrange(0,29), random.randrange(0,29))
             occupied = new_pos == self.pos
             occupied = self.segment_search(new_pos,segments)
@@ -172,7 +172,7 @@ class SnakeHead():
 
     def grow(self, pos = (0,0)):
         self.segments.insert(0, SnakeSegment(self.tile_size, pos))
-        print("Segment added")
+        #print("Segment added")
 
     def update_surface(self):
         surf = pygame.Surface((self.size, self.size))
@@ -196,12 +196,12 @@ class SnakeHead():
     def check_for_collision(self, direction):
         next_pos = self.move(direction)
         if next_pos[0] < 0 or next_pos[0] > 29 or next_pos[1] < 0 or next_pos[1] > 29: # Check borders
-            print("Collision")
+            #print("Collision")
             self.alive = False
             return
         for i in range(0,len(self.segments)-2): # Don't check the first few and last segment because realistically you can't collide with them
             if next_pos == self.segments[i].pos:
-                print("Collision")
+                #print("Collision")
                 self.alive = False
                 return
 
